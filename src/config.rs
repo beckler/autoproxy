@@ -37,20 +37,26 @@ fn get_default_config() -> PathBuf {
 }
 
 pub fn parse_config(config_path: Option<PathBuf>) -> Config {
-    let config_file: PathBuf = match config_path {
+    let config_file_path: PathBuf = match config_path {
         Some(buf) => buf,
         None => get_default_config(),
     };
 
-    let contents: String = match fs::read_to_string(config_file) {
+    let contents: String = match fs::read_to_string(config_file_path) {
         Ok(data) => data,
         Err(_) => {
-            println!("Unable to parse autoproxy config");
+            println!("Unable to find the autoproxy config in the expected path");
             process::exit(1);
         }
     };
 
-    toml::from_str(&contents).unwrap()
+    return match toml::from_str(&contents) {
+        Ok(data) => data,
+        Err(err) => {
+            println!("Unable to parse autoproxy config! Reason: {:?}", err);
+            process::exit(1)
+        }
+    };
 }
 
 #[cfg(test)]
