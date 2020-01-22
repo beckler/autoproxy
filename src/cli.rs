@@ -1,4 +1,6 @@
-use std::path::PathBuf;
+extern crate structopt;
+
+// use std::path::PathBuf;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -15,10 +17,6 @@ pub struct LaunchArgs{
     /// Verbose mode (-v, -vv, -vvv, etc.)
     #[structopt(short, long, parse(from_occurrences))]
     verbose: u8,
-
-    /// Config file
-    #[structopt(short, long, parse(from_os_str))]
-    config: Option<PathBuf>,
 
     #[structopt(subcommand)]
     cmd: Option<Command>,
@@ -41,4 +39,22 @@ pub enum Command {
     /// List all proxies in the current configuration the current status
     #[structopt(name = "list")]
     List {},
+
+    /// Adds a new proxy configuration
+    #[structopt(name = "add")]
+    Add {
+        name: String,
+        #[structopt(long, about = "Define the http proxy endpoint")]
+        http: Option<String>,
+
+        #[structopt(long, about = "Define the https proxy endpoint")]
+        https: Option<String>,
+
+        #[structopt(long, about = "Define endpoints that should be excepted from the proxy")]
+        no: Option<String>
+    },
+
+    /// Removes an existing proxy configuration
+    #[structopt(name = "remove")]
+    Remove {},
 }

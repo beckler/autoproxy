@@ -1,3 +1,6 @@
+extern crate confy;
+extern crate structopt;
+
 use structopt::StructOpt;
 
 mod cli;
@@ -7,7 +10,9 @@ fn main() {
     let opt = cli::LaunchArgs::from_args();
     println!("{:?}", opt);
 
-    let config = config::parse_config(None);
-    println!("{:?}", config)
+    let cfg: config::Config = match confy::load("autoproxy") {
+        Ok(data) => data,
+        Err(_) => config::Config::default(),
+    };
+    println!("{:?}", cfg);
 }
-
