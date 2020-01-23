@@ -3,7 +3,10 @@ name = "autoproxy"
 version = "0.1.0"
 authors = ["Michael Beckler <mcbeckler@gmail.com>"]
 edition = "2018"
-description = "Tool for automatically setting `http_proxy`, `https_proxy`, and `no_proxy` values in the cli/cmd/terminal by discovering which proxies are available, or if a proxy is even needed at all."
+description = """
+Tool for automatically setting the `http_proxy`, `https_proxy`, and `no_proxy`
+environment variables by discovering which proxies are available,
+or if a proxy is even needed at all."""
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

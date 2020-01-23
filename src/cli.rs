@@ -1,14 +1,9 @@
-extern crate structopt;
-
-// use std::path::PathBuf;
 use structopt::StructOpt;
+use structopt::clap::AppSettings;
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "autoproxy", about)]
+#[structopt(about, global_settings = &[AppSettings::DisableVersion])]
 pub struct LaunchArgs{
-    // A flag, true if used in the command line. Note doc comment will
-    // be used for the help message of the flag. The name of the
-    // argument will be, by default, based on the name of the field.
     /// Activate debug mode
     #[structopt(short, long)]
     debug: bool,
@@ -24,10 +19,6 @@ pub struct LaunchArgs{
 
 #[derive(StructOpt, Debug)]
 pub enum Command {
-    /// Creates a new config file
-    #[structopt(name = "init")]
-    Init {},
-
     /// Enables the autoproxy
     #[structopt(name = "enable")]
     Enable {},
@@ -36,25 +27,38 @@ pub enum Command {
     #[structopt(name = "disable")]
     Disable {},
 
-    /// List all proxies in the current configuration the current status
+    /// List all proxy configurations and their status
     #[structopt(name = "list")]
-    List {},
+    List {
+        /// Prints results as json
+        #[structopt(short, long)]
+        json: bool,
+    },
 
     /// Adds a new proxy configuration
     #[structopt(name = "add")]
     Add {
+        /// Alias for this proxy configuration
         name: String,
-        #[structopt(long, about = "Define the http proxy endpoint")]
+
+        /// HTTP proxy endpoint
+        #[structopt(long)]
         http: Option<String>,
 
-        #[structopt(long, about = "Define the https proxy endpoint")]
+        /// HTTPS proxy endpoint
+        #[structopt(long)]
         https: Option<String>,
 
-        #[structopt(long, about = "Define endpoints that should be excepted from the proxy")]
+        /// Comma-separated list of domain exceptions
+        /// (i.e. "a.com, b.com")
+        #[structopt(long)]
         no: Option<String>
     },
 
     /// Removes an existing proxy configuration
     #[structopt(name = "remove")]
-    Remove {},
+    Remove {
+        /// Proxy configuration alias
+        name: String,
+    },
 }

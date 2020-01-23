@@ -1,10 +1,4 @@
-extern crate confy;
-extern crate serde_derive;
-
-use serde_derive::{
-    Deserialize,
-    Serialize,
-};
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
