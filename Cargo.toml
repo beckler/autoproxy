@@ -8,12 +8,10 @@ Tool for automatically setting the `http_proxy`, `https_proxy`, and `no_proxy`
 environment variables by discovering which proxies are available,
 or if a proxy is even needed at all."""
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 ping = "0.2"
 toml = "0.5"
+confy = { git = "https://github.com/rust-cli/confy" }
 serde = "1.0"
 serde_derive = "1.0"
 structopt = "0.3"
-confy = "0.3.1"
