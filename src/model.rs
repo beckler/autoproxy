@@ -1,6 +1,9 @@
+use std::net::TcpStream;
 use structopt::StructOpt;
 use structopt::clap::AppSettings;
 use serde_derive::{Deserialize, Serialize};
+
+pub const APP_NAME: &'static str = "autoproxy";
 
 // cli structs
 #[derive(StructOpt, Debug)]
@@ -28,28 +31,16 @@ pub enum Command {
     Disable {},
     /// List all proxy configurations and their status
     #[structopt(name = "list")]
-    List {
-        /// Prints results as json
-        #[structopt(short, long)]
-        json: bool,
-    },
+    List {},
     /// Adds a new proxy configuration
     #[structopt(name = "add")]
-    Add(ProxyType),
+    Add(Proxy),
     /// Removes an existing proxy configuration
     #[structopt(name = "remove")]
     Remove {
         /// Proxy configuration alias
         name: String,
     },
-}
-
-#[derive(StructOpt, Debug)]
-pub enum ProxyType {
-    #[structopt(name = "proxy")]
-    Proxy(Proxy),
-    #[structopt(name = "pac")]
-    ProxyAutoConfig(ProxyAutoConfig),
 }
 
 // config structs
@@ -59,43 +50,139 @@ pub struct Config {
     proxy: Option<Vec<Proxy>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, StructOpt)]
+#[derive(Debug, Clone, Serialize, Deserialize, StructOpt)]
 pub struct Proxy {
     /// Alias for this proxy configuration
-    name: String,
+    pub name: String,
     /// HTTP proxy endpoint
     #[structopt(long)]
-    http: Option<String>,
+    pub http: Option<String>,
     /// HTTPS proxy endpoint
     #[structopt(long)]
-    https: Option<String>,
+    pub https: Option<String>,
     /// Comma-separated list of domain exceptions
     /// (i.e. "a.com, b.com")
     #[structopt(long)]
-    no: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, StructOpt)]
-pub struct ProxyAutoConfig {
-    /// Alias for this proxy configuration
-    name: String,
-    /// URL to PAC file
-    pac: String,
-    /// URL to evaluate against the PAC file when loaded
-    #[structopt(long, default_value = "https://google.com")]
-    test_url: String,
+    pub no: Option<String>,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
             enabled: Some(false),
-            proxy: Some(vec![Proxy {
-                name: String::new(),
-                http: None,
-                https: None,
-                no: None,
-            }])
+            proxy: None,
         }
+    }
+}
+
+impl Config {
+    pub fn enable_proxy(&mut self, verbosity: u8) {
+        self.enabled = Some(true);
+        self.update_config(verbosity);
+    }
+
+    pub fn disable_proxy(&mut self, verbosity: u8) {
+        self.enabled = Some(false);
+        self.update_config(verbosity);
+    }
+
+    pub fn remove_proxy(&mut self, verbosity: u8, name: String) {
+        match &mut self.proxy {
+            // if there are no configs availabled, exit early.
+            None => {
+                println!("there are no proxy configurations available to remove");
+                std::process::exit(1);
+            },
+            // if we have proxy data available...
+            Some(data) => {
+                // find the index of the config to remove...
+                match data.iter().position(|x| x.name == name) {
+                    None => {
+                        // if we're unable to find the config with the specific name, exit.
+                        println!("unable to find a proxy configuration with the name: {:?}", name);
+                        std::process::exit(1);
+                    },
+                    Some(idx) => {
+                        // remove the entry, and save the config.
+                        data.remove(idx);
+                        self.update_config(verbosity);
+                    }
+                }
+            }
+        };
+    }
+
+    pub fn add_proxy(&mut self, verbosity: u8, proxy: Proxy) {
+        // add a new proxy
+        match &mut self.proxy {
+            None => {
+                // create a new list if none exists
+                let mut new_list: Vec<Proxy> = Vec::<Proxy>::new();
+                new_list.push(proxy);
+
+                self.proxy = Some(new_list);
+            },
+            Some(data) => {
+                data.push(proxy);
+            }
+        }
+
+        // update config file
+        self.update_config(verbosity);
+    }
+
+    pub fn list_proxies(&self, verbosity: u8) {
+        if verbosity > 1 {
+            println!("listing available proxies")
+        }
+
+        let proxies: Vec<Proxy> = match &self.proxy {
+            Some(data) => data.to_vec(),
+            None => {
+                println!("there are no proxy configurations available");
+                std::process::exit(0);
+            },
+        };
+
+        for proxy in proxies.iter() {
+            println!("---------------");
+            println!("Proxy:\t{}", proxy.name);
+            match &proxy.http {
+                Some(data) => println!("http:\t{}", data),
+                None => println!("http:\tnone"),
+            }
+            match &proxy.https {
+                Some(data) => println!("https:\t{}", data),
+                None => println!("https:\tnone"),
+            }
+            match &proxy.no {
+                Some(data) => println!("no:\t{}", data),
+                None => println!("no:\tnone"),
+            }
+        }
+    }
+
+    pub fn determine_proxy(&self, verbosity: u8) {
+        if let Ok(_) = TcpStream::connect("google.com:443") {
+            if verbosity > 0 {
+                println!("Connected to the server!");
+            }
+        } else {
+            println!("Couldn't connect to server...");
+        }
+        std::process::exit(0)   
+    }
+    
+    fn update_config(&self, verbosity: u8) {
+        if verbosity > 1 {
+            println!("writing config to filesystem");
+        }
+        match confy::store(APP_NAME, self) {
+            Ok(_) => (),
+            Err(err) => {
+                println!("Error writing to config file: {:?}", err);
+                std::process::exit(2)
+            },
+        };
     }
 }
