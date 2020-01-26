@@ -23,6 +23,8 @@ pub struct LaunchArgs{
 
 #[derive(StructOpt, Debug)]
 pub enum Command {
+    #[structopt(name = "status")]
+    Status {},
     /// Enables the autoproxy
     #[structopt(name = "enable")]
     Enable {},
@@ -76,6 +78,12 @@ impl Default for Config {
 }
 
 impl Config {
+    pub fn status (&self, _verbosity: u8) {
+        //todo: print status (enabled, disabled)
+        //todo: let user know if proxy varibles are currently set
+        //todo?: show status of proxy connections? - might be better in it's own subcommand.
+    }
+
     pub fn enable_proxy(&mut self, verbosity: u8) {
         self.enabled = Some(true);
         self.update_config(verbosity);
@@ -129,6 +137,9 @@ impl Config {
 
         // update config file
         self.update_config(verbosity);
+        if verbosity > 0 {
+            println!("proxy added to configuration");
+        }
     }
 
     pub fn list_proxies(&self, verbosity: u8) {
@@ -144,21 +155,23 @@ impl Config {
             },
         };
 
+        println!("---------------");
         for proxy in proxies.iter() {
-            println!("---------------");
-            println!("Proxy:\t{}", proxy.name);
-            match &proxy.http {
-                Some(data) => println!("http:\t{}", data),
-                None => println!("http:\tnone"),
-            }
+            println!("proxy:\t{}", proxy.name);
+            println!("-----");
             match &proxy.https {
                 Some(data) => println!("https:\t{}", data),
                 None => println!("https:\tnone"),
+            }
+            match &proxy.http {
+                Some(data) => println!("http:\t{}", data),
+                None => println!("http:\tnone"),
             }
             match &proxy.no {
                 Some(data) => println!("no:\t{}", data),
                 None => println!("no:\tnone"),
             }
+            println!("---------------");
         }
     }
 

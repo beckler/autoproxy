@@ -25,6 +25,7 @@ fn main() {
     // parse cmd line option and execute
     match opt.cmd {
         Some(cmd) => match cmd {
+            model::Command::Status{} => cfg.status(verbosity),
             model::Command::Enable{} => cfg.enable_proxy(verbosity),
             model::Command::Disable{} => cfg.disable_proxy(verbosity),
             model::Command::List{} => cfg.list_proxies(verbosity),
