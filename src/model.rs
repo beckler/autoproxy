@@ -21,7 +21,7 @@ pub struct Proxy {
     pub name: String,
     /// Domain:Port to test proxy connections.
     /// This tests the connection by creating a TCP connection.
-    #[structopt(short, long, default_value="docs.tnybit.com:80")]
+    #[structopt(short, long, default_value="detectportal.firefox.com:80")]
     pub test_url: String,
     /// HTTP proxy endpoint
     #[structopt(long)]
@@ -161,7 +161,7 @@ impl Config {
 
     // TODO: needs tests
     pub fn determine_proxy(&self) {
-        if let Ok(_) = TcpStream::connect("google.com:443") {
+        if let Ok(_) = TcpStream::connect("detectportal.firefox.com:80") {
             info!("connected to the server");
         } else {
             info!("unable to connect to server");
