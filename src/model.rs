@@ -161,17 +161,27 @@ impl Config {
 
     // TODO: needs tests
     pub fn determine_proxy(&self) {
+        match &self.proxy {
+            None => {
+                warn!("there are no proxy configurations available to evaluate");
+                std::process::exit(1);
+            },
+            Some(data) => {
+                for proxy in data.iter() {
+                    
+                }
+            }
+        }
         if let Ok(_) = TcpStream::connect("detectportal.firefox.com:80") {
             info!("connected to the server");
         } else {
             info!("unable to connect to server");
         }
-        std::process::exit(0)   
     }
 
-    fn update_environment(&self) {
+    // fn update_environment(&self) {
         
-    }
+    // }
     
     // TODO: needs tests
     fn update_config(&self) {

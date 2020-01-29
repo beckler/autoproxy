@@ -13,6 +13,7 @@ log = "0.4"
 ping = "0.2"
 toml = "0.5"
 confy = { git = "https://github.com/rust-cli/confy" }
+hyper = "0.13"
 console = "0.9"
 structopt = "0.3"
 stderrlog = "0.4"
